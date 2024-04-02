@@ -1,16 +1,29 @@
+//servo check
+//モーターの右左
+//キャリブレーションの正確性
+//etoe前に確認すること
+//１．溶断のピン番号と時間S
+//sdcardの中身消す、書き込み練習
+//microsd
+#include <Arduino.h>
+#include <Wire.h>
+#include <SPI.h>
+//bluetooth ready
 #include "BluetoothSerial.h"
-
 BluetoothSerial SerialBT;
-
-String MACadd = "40:f5:20:53:61:9e";
-uint8_t address[6]  = {0x40, 0xf5, 0x20, 0x53, 0x61, 0x9e};
+uint8_t address[6]  = {0x08, 0xB6, 0x1F, 0xEE, 0x42, 0x2A};
 bool connected;
+#define read_x  4                         //X軸(横軸)
+#define read_y  0                         //7軸(縦軸)
+#define read_sw 2                         //スイッチ
+
+int x_axis, y_axis, sw;
 
 void setup() {
+  //serial ready
   Serial.begin(115200);
-  SerialBT.begin("ESP32test", true); 
+  SerialBT.begin("sinkan", true); 
   Serial.println("device start");
-  
   connected = SerialBT.connect(address);
   if(connected) {
     Serial.println("Connect OK");
@@ -25,35 +38,35 @@ void setup() {
   }
 
   SerialBT.connect();
-
-  pinMode(13, OUTPUT);
-  pinMode(15, INPUT_PULLUP);
-
+  delay(100);
+  pinMode(read_x, INPUT);
+  pinMode(read_y, INPUT);
+  pinMode(read_sw, INPUT_PULLUP);
 }
 
-
-char databox;
 void loop() {
-  if (digitalRead(15) == LOW) {
-    Serial.println("LED is ON.");
-    SerialBT.write('T');
-  }
-  if (digitalRead(15) == HIGH) {
-    Serial.println("LED is OFF.");
-    SerialBT.write('L');
-  }
-
-  if (SerialBT.available()) {
-    databox = SerialBT.read();
-    Serial.println(databox);
-
-    if (databox == 'L') {
-      digitalWrite(13, LOW);
-    }
-    if (databox == 'T') {
-      digitalWrite(13, HIGH);
-    }
-  }
+  x_axis = analogRead(read_x);
+  y_axis = analogRead(read_y);
+  sw     = digitalRead(read_sw);
+  //送信用にデータを整形
+  String data = String(x_axis) + "," + String(y_axis) + "," + String(sw) + ";";
   
-  delay(20);
-} 
+  Serial.print("x=");
+  Serial.print(x_axis);
+  Serial.print("\ty=");
+  Serial.print(y_axis);
+  Serial.print("\tswitch");
+  if(sw == 1){                //スイッチを離したとき
+    Serial.println("OFF");
+  }else{                     //スイッチを押したとき
+    Serial.println("ON");
+  }
+  SerialBT.print(data);
+/*
+   for(int i = 0; i < 10; i++){
+      SerialBT.write('T');
+    }
+    SerialBT.write(';');
+*/  
+  delay(500);
+}
