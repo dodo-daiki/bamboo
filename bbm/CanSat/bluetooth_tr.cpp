@@ -45,8 +45,28 @@ void setup() {
 }
 
 void loop() {
+  //値の範囲は0~4095
   x_axis = analogRead(read_x);
   y_axis = analogRead(read_y);
+  //送信用に修正
+  //xの値をもとに回転度合いを変更
+  if(x_axis > 1000 && x_axis < 3000){
+    x_axis = 0;
+  }else if (x_axis >= 3000){
+    x_axis = (x_axis - 1700) / 10;
+  }else{
+    x_axis = x_axis   / 10 -240;
+  }
+  //yの値をもとに速度を変更
+  if(y_axis > 1000 && y_axis < 3000){
+    y_axis = 0;
+  }else if (y_axis >= 3000){
+    y_axis = (y_axis - 1700) / 10;
+  }else{
+    y_axis = y_axis / 10 -240;
+  }
+
+  //押してるときに0、押してないときに1
   sw     = digitalRead(read_sw);
   //送信用にデータを整形
   String data = String(x_axis) + "," + String(y_axis) + "," + String(sw) + ";";
@@ -62,6 +82,7 @@ void loop() {
     Serial.println("ON");
   }
   SerialBT.print(data);
+  
 /*
    for(int i = 0; i < 10; i++){
       SerialBT.write('T');
