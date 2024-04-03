@@ -18,6 +18,7 @@ bool connected;
 #define read_sw 2                         //スイッチ
 
 int x_axis, y_axis, sw;
+int sokudo, kaiten;
 
 void setup() {
   //serial ready
@@ -48,33 +49,53 @@ void loop() {
   //値の範囲は0~4095
   x_axis = analogRead(read_x);
   y_axis = analogRead(read_y);
-  //送信用に修正
-  //xの値をもとに回転度合いを変更
-  if(x_axis > 1000 && x_axis < 3000){
-    x_axis = 0;
-  }else if (x_axis >= 3000){
-    x_axis = (x_axis - 1700) / 10;
-  }else{
-    x_axis = x_axis   / 10 -240;
-  }
-  //yの値をもとに速度を変更
-  if(y_axis > 1000 && y_axis < 3000){
-    y_axis = 0;
-  }else if (y_axis >= 3000){
-    y_axis = (y_axis - 1700) / 10;
-  }else{
-    y_axis = y_axis / 10 -240;
-  }
-
-  //押してるときに0、押してないときに1
-  sw     = digitalRead(read_sw);
-  //送信用にデータを整形
-  String data = String(x_axis) + "," + String(y_axis) + "," + String(sw) + ";";
-  
   Serial.print("x=");
   Serial.print(x_axis);
   Serial.print("\ty=");
   Serial.print(y_axis);
+  //送信用に修正
+  //xの値をもとに回転度合いを変更
+  //ジョイスティックを動かしてない状態での値を0にする
+  if(x_axis > 2100 && y_axis > 2100){
+    sokudo = 0;
+    kaiten = 0;
+  }else{
+    //[0,2800]
+    x_axis = (-x_axis + 2500) / 10;
+    y_axis = (-y_axis + 2500) / 10;
+    sokudo = sqrt(x_axis * x_axis + y_axis * y_axis) * 200 / 350;
+    //最大値調整
+    if(sokudo > 255){
+      sokudo = 255;
+    }
+    //回転を-255~255に変換
+    kaiten = atan2(y_axis, x_axis) * 180 / PI;
+    kaiten = kaiten - 45;
+    kaiten = kaiten * 255 / 45;
+    if(kaiten > 255){
+      kaiten = 255;
+    }
+    if(kaiten < -255){
+      kaiten = -255;
+    }
+
+
+  }
+
+  //押してるときに0、押してないときに1
+  sw     = digitalRead(read_sw);
+  if(sw == 1){                //スイッチを離したとき
+    sw     =0;
+  }else{                     //スイッチを押したとき
+    sw     =1;
+  }
+  //送信用にデータを整形
+  String data = String(kaiten) + "," + String(sokudo) + "," + String(sw) + ";";
+  
+  Serial.print("sokudo=");
+  Serial.print(sokudo);
+  Serial.print("\tkaiten=");
+  Serial.print(kaiten);
   Serial.print("\tswitch");
   if(sw == 1){                //スイッチを離したとき
     Serial.println("OFF");

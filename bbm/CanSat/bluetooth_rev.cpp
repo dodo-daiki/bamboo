@@ -18,8 +18,8 @@ typedef struct{
 
 BluetoothSerial SerialBT;
 
-String pre_rev_data[2]; //受信データの一時保存用
-int rev_data[2] = {0,0};
+String pre_rev_data[3]; //受信データの一時保存用
+int rev_data[3] = {0,0,0};
 
 
 
@@ -70,6 +70,14 @@ void receiveData(String data){
             pre_rev_data[index] += tmp;
         }
     }
+    //文字列データを数値に変換
+    for (int i = 0; i < 3; i++) {
+        rev_data[i] = pre_rev_data[i].toInt();
+    }
+    //データの初期化
+    for (int i = 0; i < 3; i++) {
+        pre_rev_data[i] = "";
+    }
 }
 
 void setup() {
@@ -89,8 +97,15 @@ void loop() {
   if (SerialBT.available()) {
     //文字データフォーマットは回転,速度,モード制御
     String databox = SerialBT.readStringUntil(';');
+    receiveData(databox);
     Serial.println(databox);
-
+    Serial.print("rev_data[0]:");
+    Serial.println(rev_data[0]);
+    Serial.print("rev_data[1]:");
+    Serial.println(rev_data[1]);
+    Serial.print("rev_data[2]:");
+    Serial.println(rev_data[2]);
+    MotorOut(motorPin, rev_data[1], rev_data[0]);
+    delay(10);
   }
-  delay(20);
 }
