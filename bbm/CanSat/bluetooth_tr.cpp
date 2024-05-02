@@ -36,6 +36,7 @@ void setup() {
   
   if (SerialBT.disconnect()) {
     Serial.println("Disconnected Succesfully!");
+    Seri
   }
 
   SerialBT.connect();
