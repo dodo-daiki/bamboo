@@ -24,7 +24,7 @@ def RGB_LED(r,g,b):
     a = class_ws2812.set_led(0,(r,g,b))
     a = class_ws2812.display()
 
-# 起動インジケータとしてblueで点滅、最後に点灯
+# 起動確認として内部ledをblueで点滅、最後に点灯させる
 RGB_LED(0,0,BRIGHTNESS)
 RGB_LED(0,0,BRIGHTNESS)
 RGB_LED(0,0,BRIGHTNESS)
